@@ -126,8 +126,8 @@ async function main() {
           + 'in future versions. Run the plugin with `--repo-config` and `--credential-config`.');
       await update.updateConfigFile(configPath, creds);
     } else {
-        await update.updateConfigFiles(allArgs.repoConfig, allArgs.credentialConfig, creds, allArgs.allowAllDomains);
-        await updateYarn.updateYarnConfigFiles(allArgs.repoConfigYarn, allArgs.credentialConfigYarn, creds);
+      await update.updateConfigFiles(allArgs.repoConfig, allArgs.credentialConfig, creds, allArgs.allowAllDomains);
+      await updateYarn.updateYarnConfigFiles(allArgs.repoConfigYarn, allArgs.credentialConfigYarn, creds);
     }
     console.log("Success!");
   } catch (err) {
