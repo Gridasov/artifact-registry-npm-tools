@@ -29,12 +29,12 @@ async function updateYarnConfigFiles(fromConfigPath, toConfigPath, creds) {
   fromConfigPath = path.resolve(fromConfigPath);
   toConfigPath = path.resolve(toConfigPath);
 
-  const fromDoc = yaml.load(fs.readFileSync(fromConfigPath, 'utf8'));
+  const fromDoc = fs.existsSync(fromConfigPath) ? yaml.load(fs.readFileSync(fromConfigPath, 'utf8')) : {};
   const toDoc = fs.existsSync(toConfigPath)
-    ? yaml.load(fs.readFileSync(toConfigPath, 'utf8'))
+    ? (yaml.load(fs.readFileSync(toConfigPath, 'utf8')) || {})
     : {};
 
-  if (fromDoc.npmScopes) {
+  if (fromDoc && fromDoc.npmScopes) {
     for (const scope in fromDoc.npmScopes) {
       const fromScope = fromDoc.npmScopes[scope];
       if (fromScope.npmRegistryServer) {
@@ -51,6 +51,19 @@ async function updateYarnConfigFiles(fromConfigPath, toConfigPath, creds) {
         toScope.npmAlwaysAuth = true;
         toScope.npmAuthToken = creds;
       }
+    }
+  } else {
+    logger.debug(`Not found file ${fromConfigPath}, creating ${toConfigPath}, replace the default values`);
+    // Ensure default workspace scope is present if not already set
+    if (!toDoc.npmScopes) {
+      toDoc.npmScopes = {};
+    }
+    if (!toDoc.npmScopes.workspace) {
+      toDoc.npmScopes.workspace = {
+        npmRegistryServer: 'https://<location>-npm.pkg.dev/<project>/<repo>',
+        npmAlwaysAuth: true,
+        npmAuthToken: creds,
+      };
     }
   }
 
