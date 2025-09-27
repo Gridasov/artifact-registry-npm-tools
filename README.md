@@ -1,13 +1,13 @@
 # Artifact Registry tools for npm packages
 
-This repository contains tools to simplify the process of working with npm
-packages using Artifact Registry.
+This repository contains tools to simplify the process of working with
+npm/yarn packages using Artifact Registry.
 
 # Artifact Registry Module
 
 The Artifact Registry google-artifactregistry-auth module is an npm package
-which allows you to configure npm to interact with npm private repositories
-in Artifact Registry.
+which allows you to configure npm/yarn to interact with npm private
+repositories in Artifact Registry.
 
 For more details, see
 https://cloud.google.com/artifact-registry/docs/nodejs/authentication
@@ -20,7 +20,7 @@ credentials in the following order:
 
 NOTE: This module would update credentials for **all** Artifact Registry
 repositories. It would not be suitable if you use multiple account credentials
-in npmrc file.
+in npmrc/yarnrc file.
 
 To use the module:
 
@@ -40,8 +40,10 @@ To use the module:
     
        `$ gcloud auth login`
 
-2.  Add settings to connect to the repository to .npmrc. Use the output from the
+2.  Add settings to connect to the repository to .npmrc / .yarnrc.yml. Use the output from the
     following command:
+
+2.1. For npm (and .npmrc)
 
     `$ gcloud artifacts print-settings npm`
 
@@ -58,13 +60,42 @@ To use the module:
 
     **LOCATION** is the location of the repository.
 
+2.2. For yarn (and .yarnrc.yml)
+
+    Add to 
+
+    ```
+    npmScopes:
+      workspace:
+        npmRegistryServer: 'https://LOCATION-npm.pkg.dev/PROJECT_ID/REPOSITORY_ID'
+        npmAlwaysAuth: true
+        npmAuthToken: 'empty'
+    ```
+
+    Where
+
+    **PROJECT_ID** is the ID of the project.
+
+    **REPOSITORY_ID** is the ID of the repository.
+
+    **LOCATION** is the location of the repository.
+
+
 3.  Use one of these below options to run the script
 
     1.  Run the module outside of the directory containing the target npmrc file
-
+        
+        npm:
+        
         `$ npx google-artifactregistry-auth --repo-config=[./.npmrc] --credential-config=[~/.npmrc]`
+        
+        yarn:
+
+        `$ npx google-artifactregistry-auth --repo-config-yarn=[./.yarnrc.yml] --credential-config-yarn=[~/.yarnrc.yml]`
 
     2.  Include the command in the scripts in package.json
+        
+        npm:
 
         ```
         "scripts": {
@@ -72,10 +103,21 @@ To use the module:
         }
         ```
         
+        yarn:
+
+        ```
+        "scripts": {
+            "artifactregistry-login": "npx google-artifactregistry-auth --repo-config-yarn=[./.yarnrc.yml] --credential-config-yarn=[~/.yarnrc.yml]",
+        }
+        ```
+
         Where:
         - `--repo-config` is the `.npmrc` file with your repository settings. If you don't specify this flag, 
         the default location is the current directory.
         - `--credential-config` is the path to the `.npmrc` file where you want to write the access token. The default is your user `.npmrc` file.
+        - `--repo-config-yarn` is the `.yarnrc.yml` file with your repository settings. If you don't specify this flag, 
+        the default location is the current directory.
+        - `--credential-config-yarn` is the path to the `.yarnrc.yml` file where you want to write the access token. The default is your user `.yarnrc.yml` file.
 
         If you want to skip checking for npm Artifact Registry domain and allow the auth token to be attached to any domains, add the flag `--allow-all-domains`
 
@@ -90,9 +132,19 @@ To use the module:
 
         `$ npm install google-artifactregistry-auth --save-dev`
 
+        npm:
+
         ```
         "scripts": {
             "artifactregistry-login": "./node_modules/.bin/artifactregistry-auth --repo-config=[./.npmrc] --credential-config=[~/.npmrc]",
+        }
+        ```
+
+        yarn:
+
+        ```
+        "scripts": {
+            "artifactregistry-login": "./node_modules/.bin/artifactregistry-auth --repo-config-yarn=[./.yarnrc.yml] --credential-config-yarn=[~/.yarnrc.yml]",
         }
         ```
 
