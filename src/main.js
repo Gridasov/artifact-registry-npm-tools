@@ -21,6 +21,7 @@ const auth = require('./auth');
 const { logger } = require('./logger');
 const update = require('./update');
 const fs = require('fs');
+const updateYarn = require('./update-yarn');
 
 /**
  * Determine which npmrc file should be the default repo configuration
@@ -35,6 +36,22 @@ const fs = require('fs');
     return '.npmrc'
   } catch (e) {
     return `${os.homedir()}/.npmrc`
+  }
+}
+
+/**
+ * Determine which yarnrc.yml file should be the default repo configuration
+ * 
+ * This will determine if a project-level yarnrc.yml file exists, otherwise default to the user-level yarnrc.yml file
+ * 
+ * return {!Promise<String>}
+ */
+async function determineDefaultYarnRepoConfig() {
+  try {
+    await fs.promises.stat('.yarnrc.yml')
+    return '.yarnrc.yml'
+  } catch (e) {
+    return `${os.homedir()}/.yarnrc.yml`
   }
 }
 
@@ -70,6 +87,16 @@ async function main() {
         describe: 'Path to the .npmrc file to write credentials to, usually the user-level npmrc file',
         default: `${os.homedir()}/.npmrc`,
       })
+      .option('repo-config-yarn', {
+        type: 'string',
+        describe: 'Path to the .yarnrc.yml file to read registry configs from, will use the project-level yarnrc.yml file if it exists, otherwise the user-level yarnrc.yml file',
+        default: await determineDefaultYarnRepoConfig(),
+      })
+      .option('credential-config-yarn', {
+        type: 'string',
+        describe: 'Path to the .yarnrc.yml file to write credentials to, usually the user-level yarnrc.yml file',
+        default: `${os.homedir()}/.yarnrc.yml`,
+      })
       .option('verbose', {
         type: 'boolean',
         describe: 'Set log level to verbose',
@@ -100,6 +127,7 @@ async function main() {
       await update.updateConfigFile(configPath, creds);
     } else {
       await update.updateConfigFiles(allArgs.repoConfig, allArgs.credentialConfig, creds, allArgs.allowAllDomains);
+      await updateYarn.updateYarnConfigFiles(allArgs.repoConfigYarn, allArgs.credentialConfigYarn, creds);
     }
     console.log("Success!");
   } catch (err) {
